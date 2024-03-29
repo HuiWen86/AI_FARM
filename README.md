@@ -21,7 +21,7 @@ dc12v 팬모터 x2ea
 파이 카메라 x1ea
 
 #아트메가328 커스텀보드 부품
-캐패시터 22uF x2ea
+캐패시터 22pF x2ea
 스위치 x1ea
 크리스탈 16MHz x1ez
 usbttl x1ea
