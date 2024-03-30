@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <style>
+        #log_info {
+            overflow-y: scroll;
+            max-height: 200px; /* 적절한 높이로 조정하세요 */
+        }
+    </style>
+</head>
+<body>
+    <h1>Object Detection with YOLOv5</h1>
+    <div>
+        <img id="video_feed" src="{{ url_for('video_feed') }}" width="640" height="480">
+    </div>
+    <div id="object_info"></div>
+    <div id="log_info"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('object_detection_started', function() {
+            var logInfoDiv = document.getElementById('log_info');
+            logInfoDiv.innerHTML += "<p>감지가 시작되었습니다.</p>";
+            scrollToBottom();
+        });
+
+        socket.on('object_detection', function(object_info) {
+            var objectInfoDiv = document.getElementById('object_info');
+            var infoHTML = `
+                <p>감지된 객체: ${object_info.class_name}</p>
+                <p>신뢰도: ${object_info.confidence}%</p>
+                <p>좌표: (${object_info.x1}, ${object_info.y1}) - (${object_info.x2}, ${object_info.y2})</p>
+                <hr>
+            `;
+            objectInfoDiv.innerHTML = infoHTML; // 최근 객체 정보만 표시
+            scrollToBottom();
+        });
+
+        socket.on('object_detection_log', function(log_info) {
+            var logInfoDiv = document.getElementById('log_info');
+            var message = log_info.message;
+            logInfoDiv.innerHTML += `<p>${message}</p>`;
+            scrollToBottom();
+        });
+
+        function scrollToBottom() {
+            var logInfoDiv = document.getElementById('log_info');
+            logInfoDiv.scrollTop = logInfoDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detection</title>
+    <style>
+        #video-container {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        #log-container {
+            width: 100%;
+            height: auto;
+        }
+        .log-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .log-item img {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Video Stream">
+    </div>
+    <div id="log-container">
+        <h2>Detection Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <script>
+        var socket = io();
+
+        socket.on('object_detection_log', function(data) {
+            var logContainer = document.getElementById('log');
+            var logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = '<p>' + data.message + '</p><img src="' + data.image_path + '" alt="Detected Object">';
+            logContainer.prepend(logItem);
+        });
+    </script>
+</body>
+</html>
