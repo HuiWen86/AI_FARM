@@ -1,0 +1,80 @@
+import sys
+import mysql.connector
+from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtCore import QTimer
+from PyQt5.uic import loadUi
+from PyQt5.QtGui import QColor
+
+def get_sensor_values():
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="1111",
+        database="flask_login_demo"
+    )
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT Temperature, Humidity FROM Dht11_data ORDER BY Timestamp DESC LIMIT 1")
+    temperature_humidity = cursor.fetchone()
+
+    cursor.execute("SELECT Soil_moisture FROM Soil_moisture_data ORDER BY Timestamp DESC LIMIT 1")
+    soil_moisture = cursor.fetchone()
+
+    cursor.execute("SELECT Intensity FROM Light_intensity_data ORDER BY Recorded_at DESC LIMIT 1")
+    intensity = cursor.fetchone()
+
+    cursor.close()
+    connection.close()
+
+    return temperature_humidity, soil_moisture, intensity
+
+class MyWindow(QMainWindow):
+    def __init__(self):
+        super(MyWindow, self).__init__()
+        loadUi("lcd1.ui", self)
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_data)
+        self.timer.start(2000)
+
+    def update_data(self):
+        temperature_humidity, soil_moisture, intensity = get_sensor_values()
+        if temperature_humidity and soil_moisture and intensity:
+            temperature, humidity = temperature_humidity
+            self.update_display(temperature, humidity, soil_moisture[0], intensity[0])
+
+    def update_display(self, temperature, humidity, soil_moisture, intensity):
+        self.temp_label.setText("온도: {} ℃".format(temperature))
+        self.humi_label.setText("습도: {} %".format(humidity))
+        self.soil_label.setText("토양 수분: {}".format(soil_moisture))
+        self.light_label.setText("조도: {}".format(intensity))
+        
+        # 온도에 따른 배경색 설정
+        self.set_background_color(self.temp_label, temperature)
+        
+        # 습도에 따른 배경색 설정
+        self.set_background_color(self.humi_label, humidity)
+
+        # 토양 수분에 따른 배경색 설정
+        self.set_background_color(self.soil_label, soil_moisture)
+
+        # 조도에 따른 배경색 설정
+        self.set_background_color(self.light_label, intensity)
+
+    def set_background_color(self, label, value):
+        if value > 30:
+            color = QColor('red')
+        elif value < 20:
+            color = QColor('yellow')
+        else:
+            color = QColor('green')
+        
+        label.setAutoFillBackground(True)
+        palette = label.palette()
+        palette.setColor(label.backgroundRole(), color)
+        label.setPalette(palette)
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    myWindow = MyWindow()
+    myWindow.show()
+    sys.exit(app.exec_())

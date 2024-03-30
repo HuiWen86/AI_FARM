@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome</h1>
+    <button onclick="captureImage()">Capture Image</button>
+    <br>
+    <img src="{{ url_for('video_feed') }}" alt="Webcam Stream" width="640" height="480">
+    
+    <h2>Sensor Data</h2>
+    <div id="sensorData"></div>
+
+    <script>
+        function captureImage() {
+            fetch('/capture_image')
+            .then(response => {
+                if (response.ok) {
+                    alert('Image captured successfully!');
+                } else {
+                    alert('Failed to capture image!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function fetchSensorData() {
+            fetch('/sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    let sensorDataDiv = document.getElementById('sensorData');
+                    sensorDataDiv.innerHTML = '';
+
+                    // Append DHT11 Sensor Data
+                    sensorDataDiv.innerHTML += '<h3>DHT11 Sensor Data</h3>';
+                    sensorDataDiv.innerHTML += '<table border="1">';
+                    sensorDataDiv.innerHTML += '<tr><th>ID</th><th>Temperature</th><th>Humidity</th></tr>';
+                    data.dht11_data.forEach(row => {
+                        sensorDataDiv.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td></tr>`;
+                    });
+                    sensorDataDiv.innerHTML += '</table>';
+
+                    // Append Soil Moisture Sensor Data
+                    sensorDataDiv.innerHTML += '<h3>Soil Moisture Sensor Data</h3>';
+                    sensorDataDiv.innerHTML += '<table border="1">';
+                    sensorDataDiv.innerHTML += '<tr><th>ID</th><th>Soil Moisture</th></tr>';
+                    data.soil_moisture_data.forEach(row => {
+                        sensorDataDiv.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`;
+                    });
+                    sensorDataDiv.innerHTML += '</table>';
+
+                    // Append Light Intensity Sensor Data
+                    sensorDataDiv.innerHTML += '<h3>Light Intensity Sensor Data</h3>';
+                    sensorDataDiv.innerHTML += '<table border="1">';
+                    sensorDataDiv.innerHTML += '<tr><th>ID</th><th>Light Intensity</th></tr>';
+                    data.light_intensity_data.forEach(row => {
+                        sensorDataDiv.innerHTML += `<tr><td>${row[0]}</td><td>${row[1]}</td></tr>`;
+                    });
+                    sensorDataDiv.innerHTML += '</table>';
+                })
+                .catch(error => console.error('Error fetching sensor data:', error));
+        }
+
+        // Fetch sensor data initially when the page loads
+        fetchSensorData();
+
+        // Fetch sensor data every 5 seconds
+        setInterval(fetchSensorData, 5000);
+    </script>
+</body>
+</html>

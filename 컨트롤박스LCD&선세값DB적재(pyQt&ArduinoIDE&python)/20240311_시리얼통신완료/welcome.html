@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        .sensor-table {
+            float: left;
+            margin-right: 20px;
+        }
+    </style>
+    <script>
+        function fetchData() {
+            fetch('/sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update DHT11 Sensor Data table
+                    let dht11Table = document.getElementById('dht11-data');
+                    dht11Table.innerHTML = '';
+                    data.dht11_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                            <td>${row[2]}</td>
+                        `;
+                        dht11Table.appendChild(tr);
+                    });
+
+                    // Update Soil Moisture Sensor Data table
+                    let soilMoistureTable = document.getElementById('soil-moisture-data');
+                    soilMoistureTable.innerHTML = '';
+                    data.soil_moisture_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                        `;
+                        soilMoistureTable.appendChild(tr);
+                    });
+
+                    // Update Light Intensity Sensor Data table
+                    let lightIntensityTable = document.getElementById('light-intensity-data');
+                    lightIntensityTable.innerHTML = '';
+                    data.light_intensity_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                        `;
+                        lightIntensityTable.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error fetching sensor data:', error));
+        }
+
+        // Fetch data initially when the page loads
+        fetchData();
+
+        // Fetch data every 5 seconds
+        setInterval(fetchData, 5000);
+    </script>
+</head>
+<body>
+    <h1>Welcome!</h1>
+
+    <h2>Webcam Streaming</h2>
+    <img src="{{ url_for('video_feed') }}" alt="Webcam Stream">
+
+    <h2>Sensor Data</h2>
+
+    <div class="sensor-table">
+        <h3>DHT11 Sensor Data</h3>
+        <table border="1" id="dht11-data">
+            <tr>
+                <th>ID</th>
+                <th>Temperature</th>
+                <th>Humidity</th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="sensor-table">
+        <h3>Soil Moisture Sensor Data</h3>
+        <table border="1" id="soil-moisture-data">
+            <tr>
+                <th>ID</th>
+                <th>Soil Moisture</th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="sensor-table">
+        <h3>Light Intensity Sensor Data</h3>
+        <table border="1" id="light-intensity-data">
+            <tr>
+                <th>ID</th>
+                <th>Light Intensity</th>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
+
+root@raspberrypi:/home/jang/flask_app/templates# ^C
+root@raspberrypi:/home/jang/flask_app/templates# cat welcome.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <style>
+        .sensor-table {
+            float: left;
+            margin-right: 20px;
+        }
+    </style>
+    <script>
+        function fetchData() {
+            fetch('/sensor_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Update DHT11 Sensor Data table
+                    let dht11Table = document.getElementById('dht11-data');
+                    dht11Table.innerHTML = '';
+                    data.dht11_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                            <td>${row[2]}</td>
+                        `;
+                        dht11Table.appendChild(tr);
+                    });
+
+                    // Update Soil Moisture Sensor Data table
+                    let soilMoistureTable = document.getElementById('soil-moisture-data');
+                    soilMoistureTable.innerHTML = '';
+                    data.soil_moisture_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                        `;
+                        soilMoistureTable.appendChild(tr);
+                    });
+
+                    // Update Light Intensity Sensor Data table
+                    let lightIntensityTable = document.getElementById('light-intensity-data');
+                    lightIntensityTable.innerHTML = '';
+                    data.light_intensity_data.forEach(row => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row[0]}</td>
+                            <td>${row[1]}</td>
+                        `;
+                        lightIntensityTable.appendChild(tr);
+                    });
+                })
+                .catch(error => console.error('Error fetching sensor data:', error));
+        }
+
+        // Fetch data initially when the page loads
+        fetchData();
+
+        // Fetch data every 5 seconds
+        setInterval(fetchData, 5000);
+    </script>
+</head>
+<body>
+    <h1>Welcome!</h1>
+
+    <h2>Webcam Streaming</h2>
+    <img src="{{ url_for('video_feed') }}" alt="Webcam Stream">
+
+    <h2>Sensor Data</h2>
+
+    <div class="sensor-table">
+        <h3>DHT11 Sensor Data</h3>
+        <table border="1" id="dht11-data">
+            <tr>
+                <th>ID</th>
+                <th>Temperature</th>
+                <th>Humidity</th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="sensor-table">
+        <h3>Soil Moisture Sensor Data</h3>
+        <table border="1" id="soil-moisture-data">
+            <tr>
+                <th>ID</th>
+                <th>Soil Moisture</th>
+            </tr>
+        </table>
+    </div>
+
+    <div class="sensor-table">
+        <h3>Light Intensity Sensor Data</h3>
+        <table border="1" id="light-intensity-data">
+            <tr>
+                <th>ID</th>
+                <th>Light Intensity</th>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>
