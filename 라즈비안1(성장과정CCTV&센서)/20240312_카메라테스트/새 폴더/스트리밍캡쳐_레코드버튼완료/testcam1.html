@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Streaming</title>
+</head>
+<body>
+    <h1>Camera Streaming</h1>
+    <!-- 이미지를 표시하는 태그 -->
+    <img id="video-stream" src="{{ url_for('video_feed') }}" alt="Camera Feed" width="640" height="480">
+    
+    <!-- 캡처 버튼 -->
+    <button id="capture-button">Capture</button>
+
+    <!-- JavaScript 코드: 캡처 버튼 클릭 시 이미지 캡쳐 -->
+    <script>
+        // 캡처 버튼 클릭 이벤트 핸들러
+        document.getElementById('capture-button').addEventListener('click', function() {
+            // 이미지 캡처 요청 보내기
+            fetch('/capture_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Image captured successfully and saved at ' + data.image_path);
+                } else {
+                    alert('Failed to capture image: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error capturing image:', error);
+                alert('Failed to capture image. See console for details.');
+            });
+        });
+    </script>
+</body>
+</html>

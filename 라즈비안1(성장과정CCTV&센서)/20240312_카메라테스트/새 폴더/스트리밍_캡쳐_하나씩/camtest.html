@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Streaming</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Camera Streaming</h1>
+    <!-- 웹캠 스트리밍을 표시하는 태그 -->
+    <img id="video-stream" src="" alt="Camera Feed" width="640" height="480">
+    
+    <!-- 스트리밍 시작 버튼 -->
+    <button id="start-stream-button">Start Streaming</button>
+    <!-- 스트리밍 중지 버튼 -->
+    <button id="stop-stream-button" style="display:none">Stop Streaming</button>
+    
+    <!-- 캡처 버튼 -->
+    <button id="capture-button">Capture</button>
+    
+    <script>
+        $(document).ready(function(){
+            // 스트리밍 시작 버튼 클릭 이벤트 핸들러
+            $("#start-stream-button").click(function(){
+                // 비동기 GET 요청을 통해 스트리밍 엔드포인트에 접근하여 이미지를 가져옴
+                var streamingEndpoint = "/video_feed";
+                $("#video-stream").attr("src", streamingEndpoint);
+                // 버튼 표시 제어
+                $("#start-stream-button").hide();
+                $("#stop-stream-button").show();
+            });
+            
+            // 스트리밍 중지 버튼 클릭 이벤트 핸들러
+            $("#stop-stream-button").click(function(){
+                // 이미지 스트리밍 중지
+                $("#video-stream").attr("src", "");
+                // 버튼 표시 제어
+                $("#start-stream-button").show();
+                $("#stop-stream-button").hide();
+            });
+
+            // 캡처 버튼 클릭 이벤트 핸들러
+            $("#capture-button").click(function(){
+                // 비동기 POST 요청을 통해 캡처 이미지 엔드포인트에 접근하여 이미지 캡처
+                $.post("/capture_image", function(data){
+                    if(data.success){
+                        alert("Image captured successfully and saved at " + data.image_path);
+                    }else{
+                        alert("Failed to capture image: " + data.error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹캠 테스트</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>웹캠 테스트</h1>
+    <div>
+        <video id="video" width="640" height="480" autoplay></video>
+        <br>
+        <button id="capture-btn">캡처</button>
+    </div>
+    <div>
+        <img id="captured-img" src="" alt="Captured Image">
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 웹캠 비디오 스트림 가져오기
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                var video = document.getElementById("video");
+                video.srcObject = stream;
+            })
+            .catch(function(err) {
+                console.log("Error: " + err);
+            });
+
+            // 캡처 버튼 클릭 이벤트
+            $("#capture-btn").click(function() {
+                var video = document.getElementById("video");
+                var canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var dataUrl = canvas.toDataURL('image/jpeg');
+
+                $.ajax({
+                    type: "POST",
+                    url: "/capture",
+                    data: { image: dataUrl },
+                    success: function(response) {
+                        console.log("캡처 요청이 성공했습니다.");
+                        // 캡처된 이미지를 화면에 표시
+                        $("#captured-img").attr("src", response.data_url);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                        alert("이미지 캡처 중 오류가 발생했습니다.");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

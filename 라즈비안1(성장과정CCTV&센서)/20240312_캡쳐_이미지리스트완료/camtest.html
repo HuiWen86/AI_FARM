@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹캠 테스트</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .image-container {
+            display: inline-block;
+            margin: 10px;
+        }
+        .image-container img {
+            width: 200px;
+            height: auto;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>웹캠 테스트</h1>
+    <div>
+        <video id="video" width="640" height="480" autoplay></video>
+        <br>
+        <button id="capture-btn">캡처</button>
+    </div>
+    <div id="images-container"></div>
+
+    <script>
+        $(document).ready(function() {
+            // 이미지 목록 가져오기
+            function loadImages() {
+                $.ajax({
+                    type: "GET",
+                    url: "/get_images",
+                    success: function(images) {
+                        // 이미지 목록을 반복하여 화면에 표시
+                        $("#images-container").empty();
+                        images.forEach(function(image) {
+                            var imageContainer = $('<div class="image-container"></div>');
+                            var imageElement = $('<img src="' + image.path + '" alt="' + image.name + '">');
+                            imageElement.click(function() {
+                                window.open(image.path);
+                            });
+                            imageContainer.append(imageElement);
+                            $('#images-container').append(imageContainer);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                        alert("이미지 목록을 가져오는 중 오류가 발생했습니다.");
+                    }
+                });
+            }
+
+            // 웹캠 비디오 스트림 가져오기
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                var video = document.getElementById("video");
+                video.srcObject = stream;
+            })
+            .catch(function(err) {
+                console.log("Error: " + err);
+            });
+
+            // 캡처 버튼 클릭 이벤트
+            $("#capture-btn").click(function() {
+                var video = document.getElementById("video");
+                var canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var dataUrl = canvas.toDataURL('image/jpeg');
+
+                $.ajax({
+                    type: "POST",
+                    url: "/capture",
+                    data: { image: dataUrl },
+                    success: function(response) {
+                        console.log("캡처 요청이 성공했습니다.");
+                        // 캡처된 이미지를 이미지 목록에 추가
+                        loadImages();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                        alert("이미지 캡처 중 오류가 발생했습니다.");
+                    }
+                });
+            });
+
+            // 페이지 로드 시 이미지 목록 가져오기
+            loadImages();
+        });
+    </script>
+</body>
+</html>

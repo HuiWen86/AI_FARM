@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Streaming</title>
+</head>
+<body>
+    <h1>Camera Streaming</h1>
+    <!-- 이미지를 표시하는 태그 -->
+    <img id="video-stream" src="" alt="Camera Feed" width="640" height="480">
+    
+    <!-- JavaScript 코드: 카메라 스트리밍 URL로 이미지 업데이트 -->
+    <script>
+        // 카메라 스트리밍 URL
+        var videoStreamUrl = "{{ url_for('video_feed') }}";
+
+        // 이미지 업데이트 함수
+        function updateImage() {
+            // 현재 시간을 URL에 추가하여 캐시 방지
+            var imageUrl = videoStreamUrl + '?time=' + new Date().getTime();
+            // 이미지 업데이트
+            document.getElementById('video-stream').src = imageUrl;
+        }
+
+        // 페이지 로드시 매초 이미지 업데이트
+        window.onload = function() {
+            setInterval(updateImage, 1000); // 매초마다 업데이트 (1000ms = 1초)
+        };
+    </script>
+</body>
+</html>

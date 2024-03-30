@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Live Streaming</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <style>
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .streaming-container, .capture-button-container, .captured-image-container {
+            width: 400px;
+            margin-bottom: 20px;
+        }
+        .capture-button-container {
+            width: 100px;
+        }
+        .img-fluid {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .search-result-image {
+            width: 400px;
+            height: 300px;
+            object-fit: cover;
+        }
+        #searchForm {
+            display: flex;
+            align-items: baseline;
+        }
+        #searchForm .form-group {
+            margin-bottom: 0;
+            margin-right: 10px;
+        }
+        #chartLinks .btn {
+            margin-right: 10px;
+        }
+        .green-pixel-ratio {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="streaming-container">
+            <h3 class="mt-5">Live Streaming</h3> 
+            <img src="{{ url_for('video_feed') }}" class="img-fluid" alt="Streaming">
+        </div>
+        <div class="capture-button-container">
+            <form action="{{ url_for('capture') }}" method="post">
+                <button type="submit" class="btn btn-primary mt-3">Capture</button>
+            </form>
+        </div>
+        <div class="captured-image-container">
+            <h4 class="mt-5">Captured Image</h4>
+            {% if latest_image %}
+            <img src="{{ latest_image }}" class="img-fluid" alt="Captured Image">
+            {% else %}
+            <p>No captured image available</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col">
+                <form id="searchForm">
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" class="form-control" id="startDate" name="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" class="form-control" id="endDate" name="endDate">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="searchImages()">Search</button>
+                </form>
+            </div>
+            <div id="chartLinks">
+                <a href="/chart" target="_blank" class="btn btn-primary">토양수분차트</a>
+                <a href="/chart2" target="_blank" class="btn btn-primary">공기습도차트</a>
+                <a href="/chart3" target="_blank" class="btn btn-primary">공기온도차트</a>
+                <a href="/chart4" target="_blank" class="btn btn-primary">조도차트</a>
+            </div>
+        </div>
+        <div class="row mt-5" id="imageContainer">
+            <!-- Search result images will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        function searchImages() {
+            var startDate = document.getElementById('startDate').value;
+            var endDate = document.getElementById('endDate').value;
+
+            // Perform AJAX request to fetch the latest image for each date in the selected range
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var imageContainer = document.getElementById('imageContainer');
+                    imageContainer.innerHTML = xhr.responseText;
+                }
+            };
+            xhr.open('GET', '/search?startDate=' + startDate + '&endDate=' + endDate, true);
+            xhr.send();
+        }
+
+        // Automatically set yesterday and today's date in the date fields
+        var today = new Date().toISOString().split('T')[0];
+        var yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]; // 86400000 milliseconds = 1 day
+        document.getElementById('startDate').value = yesterday;
+        document.getElementById('endDate').value = today;
+    </script>
+</body>
+</html>

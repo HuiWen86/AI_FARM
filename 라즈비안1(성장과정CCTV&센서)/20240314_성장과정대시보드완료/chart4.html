@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>조도차트</title>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>조도차트</h1>
+    <label for="date">날짜 선택:</label>
+    <input type="date" id="date" name="date">
+
+    <canvas id="dataChart" width="800" height="400"></canvas>
+
+    <div id="error-msg" style="color: red;"></div>
+
+    <script>
+        let dataChart = null;
+
+        // Function to fetch and update chart data
+        function updateChartData(selectedDate) {
+            fetch(`/get_light_intensity_data?date=${selectedDate}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('선택한 날짜에 대한 데이터를 가져올 수 없습니다.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const values = data.intensity_values;
+                    const timestamps = data.timestamps;
+
+                    // Remove any previous error message
+                    document.getElementById('error-msg').innerText = '';
+
+                    // Destroy previous chart if exists
+                    if (dataChart !== null) {
+                        dataChart.destroy();
+                    }
+
+                    // Create a new Chart object
+                    const ctx = document.getElementById('dataChart').getContext('2d');
+                    dataChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: timestamps,
+                            datasets: [{
+                                label: 'Intensity',
+                                data: values,
+                                fill: false,
+                                borderColor: 'rgb(75, 192, 192)',
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Timestamp'
+                                    }
+                                },
+                                y: {
+                                    title: {
+                                        display: true,
+                                        text: 'Intensity'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('error-msg').innerText = error.message;
+
+                    // Destroy previous chart if exists
+                    if (dataChart !== null) {
+                        dataChart.destroy();
+                    }
+                });
+        }
+
+        // Update chart when date is changed
+        document.getElementById('date').addEventListener('change', event => {
+            const selectedDate = event.target.value;
+            updateChartData(selectedDate);
+        });
+
+        // Initial chart load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            updateChartData(today);
+        });
+    </script>
+</body>
+</html>

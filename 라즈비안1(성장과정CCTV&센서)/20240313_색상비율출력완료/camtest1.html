@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>웹캠 테스트</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        #video-container, #captured-image-container {
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 20px;
+        }
+        #video-container video,
+        #captured-image {
+            width: 640px;
+            height: 480px;
+        }
+        .search-container {
+            margin-top: 20px;
+        }
+        .search-container input[type="text"] {
+            margin-right: 10px;
+        }
+        .search-container button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .search-results {
+            border: 2px solid green;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .image-container {
+            display: inline-block;
+            margin: 10px;
+        }
+        .image-container img {
+            width: 200px;
+            height: auto;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>웹캠 테스트</h1>
+    <div id="video-container">
+        <video id="video" autoplay></video>
+    </div>
+    <div id="captured-image-container">
+        <img id="captured-image" src="" alt="Captured Image">
+    </div>
+
+    <button id="capture-btn">캡처</button>
+
+    <div class="search-container">
+        <input type="text" id="start-date" placeholder="시작 날짜 선택" data-default-date="today">
+        <input type="text" id="end-date" placeholder="종료 날짜 선택" data-default-date="today">
+        <button id="search-btn">조회</button>
+        <button id="analyze-btn">분석</button>
+    </div>
+
+    <div class="search-results" id="search-results-container"></div>
+
+    <script>
+        $(document).ready(function() {
+            // 오늘 날짜 가져오기
+            var today = new Date().toISOString().slice(0, 10);
+
+            // 날짜 입력창에 오늘 날짜 자동으로 입력
+            $("#start-date, #end-date").flatpickr({
+                dateFormat: "Y-m-d",
+                defaultDate: today
+            });
+
+            // 웹캠 비디오 스트리밍 가져오기
+            navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                var video = document.getElementById("video");
+                video.srcObject = stream;
+            })
+            .catch(function(err) {
+                console.log("Error: " + err);
+            });
+
+            // 캡처 버튼 클릭 이벤트
+            $("#capture-btn").click(function() {
+                var video = document.getElementById("video");
+                var canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                var dataUrl = canvas.toDataURL('image/jpeg');
+
+                $.ajax({
+                    type: "POST",
+                    url: "/capture",
+                    data: { image: dataUrl },
+                    success: function(response) {
+                        console.log("캡처 요청이 성공했습니다.");
+                        // 캡처된 이미지를 이미지 태그에 출력
+                        $('#captured-image').attr('src', response.image_path);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                        alert("이미지 캡처 중 오류가 발생했습니다.");
+                    }
+                });
+            });
+
+            // 조회 버튼 클릭 이벤트
+            $("#search-btn").click(function() {
+                var startDate = $("#start-date").val();
+                var endDate = $("#end-date").val();
+                $.ajax({
+                    type: "POST",
+                    url: "/search_images",
+                    data: { start_date: startDate, end_date: endDate },
+                    success: function(response) {
+                        console.log("검색 결과:", response.images);
+                        $("#search-results-container").empty();
+                        response.images.forEach(function(image) {
+                            var imageContainer = $('<div class="image-container"></div>');
+                            var imageElement = $('<img src="' + image.path + '" alt="' + image.name + '">');
+                            imageContainer.append(imageElement);
+                            $('#search-results-container').append(imageContainer);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.log("Error: " + error);
+                        alert("이미지 검색 중 오류가 발생했습니다.");
+                    }
+                });
+            });
+
+            // 분석 버튼 클릭 이벤트
+            $("#analyze-btn").click(function() {
+                // 선택한 이미지의 검정색 비율을 계산
+                var images = $(".image-container img");
+                images.each(function(index) {
+                    var imgSrc = $(this).attr("src");
+                    var img = new Image();
+                    img.src = imgSrc;
+                    img.onload = function() {
+                        var canvas = document.createElement("canvas");
+                        canvas.width = this.width;
+                        canvas.height = this.height;
+                        var ctx = canvas.getContext("2d");
+                        ctx.drawImage(this, 0, 0);
+                        var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        var pixels = imageData.data;
+                        var totalPixels = pixels.length / 4; // RGBA 포맷이므로 4로 나누기
+                        var blackPixels = 0;
+                        for (var i = 0; i < pixels.length; i += 4) {
+                            var r = pixels[i];
+                            var g = pixels[i + 1];
+                            var b = pixels[i + 2];
+                            // 검정색인지 확인
+                            if (r === 0 && g === 0 && b === 0) {
+                                blackPixels++;
+                            }
+                        }
+                        var blackPercentage = (blackPixels / totalPixels) * 100;
+                        // 검정색 비율을 이미지 아래에 표시
+                        var text = "검정색 비율: " + blackPercentage.toFixed(2) + "%";
+                        $("<p>").text(text).insertAfter(images[index]);
+                    };
+                });
+            });
+        });
+    </script>
+</body>
+</html>
