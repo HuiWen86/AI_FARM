@@ -1,1 +1,18 @@
 
+ls /dev/ttyUSB*  #현재 연결된 usb확인하기 
+
+lsusb #현재 연결된 포트리스트, 여기서 유아트 통신에 사용되는 ttl-usb를 찾아야 함. 
+
+#아래 예시와 같이 유아트 통신 브리지 확인 id확인
+예시) Bus 001 Device 004: ID 10c4:ea60 Silicon Labs CP210x UART Bridge 
+
+#시리얼 유아트 통신 룰 작성 
+sudo vim /etc/udev/rules.d/99-usb-serial.rules
+
+#아래 내용 복사 붙여넣기, 10c4 ea60으로 연결된 경우 ttyUSB0로 고정한다. 
+
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="ttyUSB0"
+
+#룰 리로드 
+sudo udevadm control --reload-rules
+sudo udevadm trigger
