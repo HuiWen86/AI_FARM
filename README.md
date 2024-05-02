@@ -1,4 +1,6 @@
 # AI_FARM
+영상링크 : https://www.youtube.com/watch?v=rlITuSXBhTU&t=4s
+영상링크2: https://www.youtube.com/shorts/jf0CSJkUV24
 스프링쿨러, 팬모터,워터모터,조도센서,토양센서,온습도센서를 활용한 스마트팜입니다. 4차산업 사물인터넷 시스템 개발자 양성반_ 포트폴리오로 제작하였습니다. 
 
 1_라즈베리 파이_1에 아두이노를 연결하여  센서 제어, 모터 제어
